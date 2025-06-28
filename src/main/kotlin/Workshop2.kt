@@ -30,6 +30,11 @@ fun main() {
     println("ผลรวมราคาสินค้า Electronics ที่ราคา > 500 บาท: $totalElecPriceOver500Sequence บาท")
     println("--------------------------------------------------")
 
+    // แยกกลุ่มสินค้าตามราคา
+    val groupedProducts = groupProductsByPrice(products)
+    displayGroupedProducts(groupedProducts)
+    println("--------------------------------------------------")
+
     // อภิปรายความแตกต่างระหว่าง List และ Sequence
     discussListVsSequence()
 }
@@ -41,21 +46,45 @@ fun displayProducts(products: List<Product>) {
     println("--------------------------------------------------")
 }
 
+// ฟังก์ชันสำหรับแยกกลุ่มสินค้าตามราคา
+fun groupProductsByPrice(products: List<Product>): Map<String, List<Product>> {
+    return products.groupBy { product ->
+        when {
+            product.price >= 10000 -> "10000 บาทขึ้นไป"
+            product.price <= 1000 -> "ไม่เกิน 1000 บาท"
+            product.price in 1000.0..9999.0 -> "1000 - 9999 บาท"
+            else -> "อื่นๆ"
+        }
+    }
+}
+
+// ฟังก์ชันสำหรับแสดงกลุ่มสินค้าตามราคา
+fun displayGroupedProducts(groupedProducts: Map<String, List<Product>>) {
+    println("กลุ่มสินค้าตามราคา:")
+    groupedProducts.forEach { (priceGroup, products) ->
+        println("$priceGroup:")
+        products.forEach { product ->
+            println("- ${product.name} (${product.price} บาท)")
+        }
+        println()
+    }
+}
+
 // ฟังก์ชันสำหรับคำนวณผลรวมราคาสินค้าในหมวดที่กำหนด โดยใช้ filter และ map
 fun calculateTotalPriceOver500(products: List<Product>, category: String, priceThreshold: Double): Double {
     return products
-        .filter { it.category == category && it.price > priceThreshold } // กรองสินค้าที่ตรงตามเงื่อนไข
-        .map { it.price } // ดึงเฉพาะราคาออกมา
-        .reduce { acc, price -> acc + price } // หาผลรวมราคา
+        .filter { it.category == category && it.price > priceThreshold }
+        .map { it.price }
+        .reduce { acc, price -> acc + price }
 }
 
 // ฟังก์ชันสำหรับคำนวณผลรวมราคาสินค้าในหมวดที่กำหนด โดยใช้ Sequence
 fun calculateTotalPriceOver500Sequence(products: List<Product>, category: String, priceThreshold: Double): Double {
     return products
         .asSequence()
-        .filter { it.category == category && it.price > priceThreshold } // กรองสินค้าที่ตรงตามเงื่อนไข
-        .map { it.price } // ดึงเฉพาะราคาออกมา
-        .reduce { acc, price -> acc + price } // หาผลรวมราคา
+        .filter { it.category == category && it.price > priceThreshold }
+        .map { it.price }
+        .reduce { acc, price -> acc + price }
 }
 
 // ฟังก์ชันสำหรับอภิปรายความแตกต่างระหว่าง List และ Sequence
@@ -74,3 +103,4 @@ fun discussListVsSequence() {
     println("   - จะไม่มีการสร้าง Collection กลางทาง ทำให้ประหยัดหน่วยความจำและเร็วกว่ามากสำหรับชุดข้อมูลขนาดใหญ่ เพราะทำงานกับข้อมูลทีละชิ้นและทำทุกขั้นตอนให้เสร็จในรอบเดียว")
     println("   - การคำนวณจะเกิดขึ้นเมื่อมี 'Terminal Operation' มาเรียกใช้เท่านั้น (ในที่นี้คือ .reduce())")
 }
+

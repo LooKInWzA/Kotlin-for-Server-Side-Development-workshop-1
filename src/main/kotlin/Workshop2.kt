@@ -3,92 +3,62 @@ package org.example
 // 1. กำหนด data class สำหรับเก็บข้อมูลสินค้า
 data class Product(val name: String, val price: Double, val category: String)
 
+// --- ฟังก์ชันสำหรับ Test Cases ---
+fun calculateTotalElectronicsPriceOver500(products: List<Product>): Double {
+    return products
+        .filter { it.category == "Electronics" && it.price > 500 }
+        .sumOf { it.price }
+}
+
+fun countElectronicsOver500(products: List<Product>): Int {
+    return products
+        .count { it.category == "Electronics" && it.price > 500 }
+}
+// --- สิ้นสุดฟังก์ชันสำหรับ Test Cases ---
+
+
 fun main() {
     // 2. สร้างรายการสินค้าตัวอย่าง (List<Product>)
     val products = listOf(
-        Product("Laptop", 35000.0, "Electronics"),
-        Product("Smartphone", 25000.0, "Electronics"),
-        Product("T-shirt", 450.0, "Apparel"),
-        Product("Monitor", 7500.0, "Electronics"),
-        Product("Keyboard", 499.0, "Electronics"),
-        Product("Jeans", 1200.0, "Apparel"),
-        Product("Headphones", 1800.0, "Electronics")
+        Product(name = "Laptop", price = 35000.0, category = "Electronics"),
+        Product(name = "Smartphone", price = 25000.0, category = "Electronics"),
+        Product(name = "T-shirt", price = 450.0, category = "Apparel"),
+        Product(name = "Monitor", price = 7500.0, category = "Electronics"),
+        Product(name = "Keyboard", price = 499.0, category = "Electronics"), // ราคาไม่เกิน 500
+        Product(name = "Jeans", price = 1200.0, category = "Apparel"),
+        Product(name = "Headphones", price = 1800.0, category = "Electronics") // ตรงตามเงื่อนไข
     )
 
-    // แสดงรายการสินค้าทั้งหมด
-    displayProducts(products)
+    println("รายการสินค้าทั้งหมด:")
+    products.forEach { println(it) }
+    println("--------------------------------------------------")
 
-    // หาผลรวมราคาสินค้าในหมวด 'Electronics' ที่มีราคามากกว่า 500 บาท
-    val totalElecPriceOver500 = calculateTotalPriceOver500(products, "Electronics", 500.0)
+    // --- โจทย์: จงหาผลรวมราคาสินค้าทั้งหมดในหมวด 'Electronics' ที่มีราคามากกว่า 500 บาท ---
+
+    // 3. วิธีที่ 1: การใช้ Chaining กับ List โดยตรง
+    val totalElecPriceOver500 = products
+        .filter { it.category == "Electronics" }
+        .filter { it.price > 500 }
+        .map { it.price }
+        .sum()
+
     println("วิธีที่ 1: ใช้ Chaining กับ List")
     println("ผลรวมราคาสินค้า Electronics ที่ราคา > 500 บาท: $totalElecPriceOver500 บาท")
     println("--------------------------------------------------")
 
-    // ใช้ .asSequence() เพื่อเพิ่มประสิทธิภาพ
-    val totalElecPriceOver500Sequence = calculateTotalPriceOver500Sequence(products, "Electronics", 500.0)
+
+    // 4. (ขั้นสูง) วิธีที่ 2: การใช้ .asSequence() เพื่อเพิ่มประสิทธิภาพ
+    val totalElecPriceOver500Sequence = products.asSequence()
+        .filter { it.category == "Electronics" }
+        .filter { it.price > 500 }
+        .map { it.price }
+        .sum()
+
     println("วิธีที่ 2: ใช้ .asSequence() (ขั้นสูง)")
     println("ผลรวมราคาสินค้า Electronics ที่ราคา > 500 บาท: $totalElecPriceOver500Sequence บาท")
     println("--------------------------------------------------")
 
-    // แยกกลุ่มสินค้าตามราคา
-    val groupedProducts = groupProductsByPrice(products)
-    displayGroupedProducts(groupedProducts)
-    println("--------------------------------------------------")
 
-    // อภิปรายความแตกต่างระหว่าง List และ Sequence
-    discussListVsSequence()
-}
-
-// ฟังก์ชันสำหรับแสดงรายการสินค้า
-fun displayProducts(products: List<Product>) {
-    println("รายการสินค้าทั้งหมด:")
-    products.forEach { println(it) }
-    println("--------------------------------------------------")
-}
-
-// ฟังก์ชันสำหรับแยกกลุ่มสินค้าตามราคา
-fun groupProductsByPrice(products: List<Product>): Map<String, List<Product>> {
-    return products.groupBy { product ->
-        when {
-            product.price >= 10000 -> "10000 บาทขึ้นไป"
-            product.price <= 1000 -> "ไม่เกิน 1000 บาท"
-            product.price in 1000.0..9999.0 -> "1000 - 9999 บาท"
-            else -> "อื่นๆ"
-        }
-    }
-}
-
-// ฟังก์ชันสำหรับแสดงกลุ่มสินค้าตามราคา
-fun displayGroupedProducts(groupedProducts: Map<String, List<Product>>) {
-    println("กลุ่มสินค้าตามราคา:")
-    groupedProducts.forEach { (priceGroup, products) ->
-        println("$priceGroup:")
-        products.forEach { product ->
-            println("- ${product.name} (${product.price} บาท)")
-        }
-        println()
-    }
-}
-
-// ฟังก์ชันสำหรับคำนวณผลรวมราคาสินค้าในหมวดที่กำหนด โดยใช้ filter และ map
-fun calculateTotalPriceOver500(products: List<Product>, category: String, priceThreshold: Double): Double {
-    return products
-        .filter { it.category == category && it.price > priceThreshold }
-        .map { it.price }
-        .reduce { acc, price -> acc + price }
-}
-
-// ฟังก์ชันสำหรับคำนวณผลรวมราคาสินค้าในหมวดที่กำหนด โดยใช้ Sequence
-fun calculateTotalPriceOver500Sequence(products: List<Product>, category: String, priceThreshold: Double): Double {
-    return products
-        .asSequence()
-        .filter { it.category == category && it.price > priceThreshold }
-        .map { it.price }
-        .reduce { acc, price -> acc + price }
-}
-
-// ฟังก์ชันสำหรับอภิปรายความแตกต่างระหว่าง List และ Sequence
-fun discussListVsSequence() {
     println("อภิปรายความแตกต่างระหว่าง List และ Sequence:")
     println("1. List Operations (วิธีที่ 1):")
     println("   - ทุกครั้งที่เรียกใช้ operation (เช่น filter, map) จะมีการสร้าง Collection (List) ใหม่ขึ้นมาเพื่อเก็บผลลัพธ์ของขั้นนั้นๆ")
@@ -101,6 +71,5 @@ fun discussListVsSequence() {
     println("   - ข้อมูลแต่ละชิ้น (each element) จะไหลผ่าน Pipeline ทั้งหมดทีละชิ้น จนจบกระบวนการ")
     println("   - เช่น: 'Laptop' จะถูก filter category -> filter price -> map price จากนั้น 'Smartphone' ถึงจะเริ่มทำกระบวนการเดียวกัน")
     println("   - จะไม่มีการสร้าง Collection กลางทาง ทำให้ประหยัดหน่วยความจำและเร็วกว่ามากสำหรับชุดข้อมูลขนาดใหญ่ เพราะทำงานกับข้อมูลทีละชิ้นและทำทุกขั้นตอนให้เสร็จในรอบเดียว")
-    println("   - การคำนวณจะเกิดขึ้นเมื่อมี 'Terminal Operation' มาเรียกใช้เท่านั้น (ในที่นี้คือ .reduce())")
+    println("   - การคำนวณจะเกิดขึ้นเมื่อมี 'Terminal Operation' มาเรียกใช้เท่านั้น (ในที่นี้คือ .sum())")
 }
-
